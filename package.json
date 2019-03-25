@@ -1,0 +1,23 @@
+{
+  "name": "toggl-taikin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Shintani Teppei <teppest1215@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "push": "clasp push",
+    "watch": "watch 'npm run build && npm run push' src/",
+    "build": "webpack --mode development"
+  },
+  "devDependencies": {
+    "@types/google-apps-script": "^0.0.40",
+    "@types/node": "^11.11.6",
+    "es3ify-webpack-plugin": "^0.1.0",
+    "gas-webpack-plugin": "^1.0.2",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.3.4000",
+    "watch": "^1.0.2",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
+  }
+}
