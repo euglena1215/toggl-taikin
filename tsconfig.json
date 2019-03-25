@@ -6,7 +6,8 @@
     "outDir": "./dist",
     "alwaysStrict": true,
     "baseUrl": "./",
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "lib": ["es2017"]
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules"]
