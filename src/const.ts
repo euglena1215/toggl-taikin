@@ -15,3 +15,5 @@ export const TOGGL_AVAILABLE_PARAMS = [
   "client_ids",
   "project_ids",
 ];
+
+export const SLACK_INCOMING_WEBHOOK = PropertiesService.getScriptProperties().getProperty("SLACK_INCOMING_WEBHOOK");

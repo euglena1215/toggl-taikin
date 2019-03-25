@@ -1,7 +1,29 @@
-import { TOGGL_API_TOKEN, ENDPOINT, TOGGL_USER_AGENT, TOGGL_WORKSPACE_ID, TOGGL_AVAILABLE_PARAMS } from "./const";
+import {
+  TOGGL_API_TOKEN,
+  ENDPOINT,
+  TOGGL_USER_AGENT,
+  TOGGL_WORKSPACE_ID,
+  TOGGL_AVAILABLE_PARAMS,
+  SLACK_INCOMING_WEBHOOK,
+} from "./const";
 
-global.main = () => {
-  Logger.log(minutesToReadableFormat(fetchTodayWorktime()));
+global.doPost = e => {
+  const userId = e.parameter.user_id;
+  sendOtsukareReply(userId);
+};
+
+const sendOtsukareReply = userId => {
+  UrlFetchApp.fetch(SLACK_INCOMING_WEBHOOK, {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      text: `<@${userId}> 今日は${minutesToReadableFormat(
+        fetchTodayWorktime()
+      )}も働いたんか。ようやったな。おつかれさん。`,
+      username: "おつカレーBOT",
+      icon_emoji: ":otsukare:",
+    }),
+  });
 };
 
 const fetchTodayWorktime = () => {
