@@ -9,17 +9,51 @@ import {
 
 global.doPost = e => {
   const userId = e.parameter.user_id;
-  sendOtsukareReply(userId);
+  const isStopped = stopTimer(fetchCurrentTimerId());
+  sendOtsukareReply(userId, isStopped);
 };
 
-const sendOtsukareReply = userId => {
+const fetchCurrentTimerId = () => {
+  const options = {
+    headers: { Authorization: " Basic " + Utilities.base64Encode(TOGGL_API_TOKEN + ":api_token") },
+  };
+  const json = JSON.parse(UrlFetchApp.fetch(ENDPOINT.TOGGL_TIMER_CURRENT, options).getContentText());
+  if (json.data === null) {
+    return null;
+  }
+
+  return json.data.id;
+};
+
+const stopTimer = timer_id => {
+  if (timer_id === null) {
+    return false;
+  }
+
+  const res = JSON.parse(
+    UrlFetchApp.fetch(ENDPOINT.TOGGL_TIMER_STOP(timer_id), {
+      headers: { Authorization: " Basic " + Utilities.base64Encode(TOGGL_API_TOKEN + ":api_token") },
+      method: "put",
+      contentType: "application/json",
+    }).getContentText()
+  );
+
+  return res.data !== null;
+};
+
+const sendOtsukareReply = (userId, isStopped) => {
+  let text = `<@${userId}> 今日は${minutesToReadableFormat(
+    fetchTodayWorktime()
+  )}も働いたんか。ようやったな。おつかれさん。`;
+
+  if (isStopped) {
+    text += "\nあとタイマー付いとったから止めといたで。";
+  }
   UrlFetchApp.fetch(SLACK_INCOMING_WEBHOOK, {
     method: "post",
     contentType: "application/json",
     payload: JSON.stringify({
-      text: `<@${userId}> 今日は${minutesToReadableFormat(
-        fetchTodayWorktime()
-      )}も働いたんか。ようやったな。おつかれさん。`,
+      text: text,
       username: "おつカレーBOT",
       icon_emoji: ":otsukare:",
     }),

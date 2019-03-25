@@ -1,5 +1,7 @@
 export const ENDPOINT = {
   TOGGL_REPORT: "https://toggl.com/reports/api/v2/details",
+  TOGGL_TIMER_CURRENT: "https://www.toggl.com/api/v8/time_entries/current",
+  TOGGL_TIMER_STOP: timer_id => `https://www.toggl.com/api/v8/time_entries/${timer_id}/stop`,
 };
 
 export const TOGGL_API_TOKEN = PropertiesService.getScriptProperties().getProperty("TOGGL_API_TOKEN");
