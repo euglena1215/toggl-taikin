@@ -1,21 +1,46 @@
-import {
-  TOGGL_API_TOKEN,
-  ENDPOINT,
-  TOGGL_USER_AGENT,
-  TOGGL_WORKSPACE_ID,
-  TOGGL_AVAILABLE_PARAMS,
-  SLACK_INCOMING_WEBHOOK,
-} from "./const";
+import { ENDPOINT, TOGGL_WORKSPACE_ID, TOGGL_AVAILABLE_PARAMS, SLACK_INCOMING_WEBHOOK, SHEET_ID } from "./const";
+
+const spreadsheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("シート1");
+
+global.main = () => {
+  Logger.log(transformSheetToJson(spreadsheet.getDataRange().getValues()));
+};
+
+const transformSheetToJson = values => {
+  const columnNames = values[0];
+  Logger.log(columnNames);
+  Logger.log(values);
+  return values.slice(1).map(val => {
+    let obj = {};
+    val.forEach((v, index) => {
+      obj[columnNames[index]] = v;
+    });
+    return obj;
+  });
+};
 
 global.doPost = e => {
   const userId = e.parameter.user_id;
-  const isStopped = stopTimer(fetchCurrentTimerId());
-  sendOtsukareReply(userId, isStopped);
+  const userAttributes = fetchUserAttributes(userId);
+  const isStopped = stopTimer(fetchCurrentTimerId(userAttributes.togglApiToken), userAttributes.togglApiToken);
+  sendOtsukareReply(userId, userAttributes.togglApiToken, userAttributes.togglUserAgent, isStopped);
 };
 
-const fetchCurrentTimerId = () => {
+const fetchUserAttributes = slackUserId => {
+  const userAttributes = transformSheetToJson(spreadsheet.getDataRange().getValues()).filter(
+    val => val.slackUserId === slackUserId
+  )[0];
+
+  if (userAttributes === undefined) {
+    return {};
+  }
+
+  return userAttributes;
+};
+
+const fetchCurrentTimerId = apiToken => {
   const options = {
-    headers: { Authorization: " Basic " + Utilities.base64Encode(TOGGL_API_TOKEN + ":api_token") },
+    headers: { Authorization: " Basic " + Utilities.base64Encode(apiToken + ":api_token") },
   };
   const json = JSON.parse(UrlFetchApp.fetch(ENDPOINT.TOGGL_TIMER_CURRENT, options).getContentText());
   if (json.data === null) {
@@ -25,14 +50,14 @@ const fetchCurrentTimerId = () => {
   return json.data.id;
 };
 
-const stopTimer = timer_id => {
-  if (timer_id === null) {
+const stopTimer = (timerId, apiToken) => {
+  if (timerId === null) {
     return false;
   }
 
   const res = JSON.parse(
-    UrlFetchApp.fetch(ENDPOINT.TOGGL_TIMER_STOP(timer_id), {
-      headers: { Authorization: " Basic " + Utilities.base64Encode(TOGGL_API_TOKEN + ":api_token") },
+    UrlFetchApp.fetch(ENDPOINT.TOGGL_TIMER_STOP(timerId), {
+      headers: { Authorization: " Basic " + Utilities.base64Encode(apiToken + ":api_token") },
       method: "put",
       contentType: "application/json",
     }).getContentText()
@@ -41,9 +66,9 @@ const stopTimer = timer_id => {
   return res.data !== null;
 };
 
-const sendOtsukareReply = (userId, isStopped) => {
+const sendOtsukareReply = (userId, apiToken, userAgent, isStopped) => {
   let text = `<@${userId}> 今日は${minutesToReadableFormat(
-    fetchTodayWorktime()
+    fetchTodayWorktime(apiToken, userAgent)
   )}も働いたんか。ようやったな。おつかれさん。`;
 
   if (isStopped) {
@@ -60,12 +85,12 @@ const sendOtsukareReply = (userId, isStopped) => {
   });
 };
 
-const fetchTodayWorktime = () => {
+const fetchTodayWorktime = (apiToken, userAgent) => {
   const options = {
-    headers: { Authorization: " Basic " + Utilities.base64Encode(TOGGL_API_TOKEN + ":api_token") },
+    headers: { Authorization: " Basic " + Utilities.base64Encode(apiToken + ":api_token") },
   };
   const params = {
-    user_agent: TOGGL_USER_AGENT,
+    user_agent: userAgent,
     workspace_id: TOGGL_WORKSPACE_ID,
     since: getTodayFormatString(),
     until: getTodayFormatString(),

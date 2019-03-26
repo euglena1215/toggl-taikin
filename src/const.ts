@@ -4,8 +4,6 @@ export const ENDPOINT = {
   TOGGL_TIMER_STOP: timer_id => `https://www.toggl.com/api/v8/time_entries/${timer_id}/stop`,
 };
 
-export const TOGGL_API_TOKEN = PropertiesService.getScriptProperties().getProperty("TOGGL_API_TOKEN");
-export const TOGGL_USER_AGENT = PropertiesService.getScriptProperties().getProperty("TOGGL_USER_AGENT");
 export const TOGGL_WORKSPACE_ID = PropertiesService.getScriptProperties().getProperty("TOGGL_WORKSPACE_ID");
 
 export const TOGGL_AVAILABLE_PARAMS = [
@@ -19,3 +17,5 @@ export const TOGGL_AVAILABLE_PARAMS = [
 ];
 
 export const SLACK_INCOMING_WEBHOOK = PropertiesService.getScriptProperties().getProperty("SLACK_INCOMING_WEBHOOK");
+
+export const SHEET_ID = PropertiesService.getScriptProperties().getProperty("SHEET_ID");
